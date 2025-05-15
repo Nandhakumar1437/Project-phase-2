@@ -1,0 +1,55 @@
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+# Sample Movie Dataset (you can replace this with a CSV file)
+data = {
+    'title': [
+        'The Matrix', 'John Wick', 'Avengers: Endgame',
+        'Inception', 'Interstellar', 'The Dark Knight',
+        'Iron Man', 'Doctor Strange', 'Tenet'
+    ],
+    'genres': [
+        'Action Sci-Fi', 'Action Crime', 'Action Sci-Fi Adventure',
+        'Sci-Fi Thriller', 'Sci-Fi Drama', 'Action Crime Drama',
+        'Action Sci-Fi', 'Fantasy Sci-Fi', 'Sci-Fi Action'
+    ]
+}
+
+# Create DataFrame
+df = pd.DataFrame(data)
+
+# Convert genres to TF-IDF features
+tfidf = TfidfVectorizer(stop_words='english')
+tfidf_matrix = tfidf.fit_transform(df['genres'])
+
+# Compute cosine similarity matrix
+cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+
+# Movie index mapping
+indices = pd.Series(df.index, index=df['title'])
+
+# Recommendation function
+def recommend_movies(title, num_recommendations=5):
+    if title not in indices:
+        print(f"Movie '{title}' not found in database.")
+        return []
+
+    idx = indices[title]
+    sim_scores = list(enumerate(cosine_sim[idx]))
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], 
+
+
+reverse=True)[1:num_recommendations + 1]
+  
+
+  movie_indices = [i[0] for i in sim_scores]
+    
+    return df['title'].iloc[movie_indices].tolist()
+
+# Example usage
+movie_name = 'Inception'
+recommendations = recommend_movies(movie_name, 3)
+print(f"Recommendations for '{movie_name}':")
+for rec in recommendations:
+    print(" -", rec)
